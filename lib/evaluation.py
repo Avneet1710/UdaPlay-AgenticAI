@@ -65,12 +65,12 @@ class AgentEvaluator:
     """Comprehensive agent evaluation framework"""
     
     def __init__(self, 
-                 api_base: Optional[str] = None,
+                 base_url: Optional[str] = None,
                  api_key: Optional[str] = None):
-        self.api_base = api_base
+        self.base_url = base_url
         self.api_key = api_key
         self.llm_judge = LLM(model="gpt-4o-mini",
-                             api_base = self.api_base,
+                             base_url = self.base_url,
                             api_key = sef.api_key)
     
     def evaluate_final_response(self, 
