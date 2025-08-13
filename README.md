@@ -54,16 +54,15 @@ TAVILY_API_KEY="YOUR_KEY"
 
 ### Directory Structure
 ```
-project/
-├── starter/
-│   ├── games/           # JSON files with game data
-│   ├── lib/             # Custom library implementations
-│   │   ├── llm.py       # LLM abstractions
-│   │   ├── messages.py  # Message handling
-│   │   ├── ...
-│   │   └── tooling.py   # Tool implementations
-│   ├── Udaplay_01_starter_project.ipynb  # Part 1 implementation
-│   └── Udaplay_02_starter_project.ipynb  # Part 2 implementation
+UdaPlay-AgenticAI/
+├── games/           # JSON files with game data
+├── lib/             # Custom library implementations
+│   ├── llm.py       # LLM abstractions
+│   ├── messages.py  # Message handling
+│   ├── ...
+│   └── tooling.py   # Tool implementations
+├── Udaplay_01_starter_project.ipynb  # Part 1 implementation
+└── Udaplay_02_starter_project.ipynb  # Part 2 implementation
 ```
 
 ## Getting Started
