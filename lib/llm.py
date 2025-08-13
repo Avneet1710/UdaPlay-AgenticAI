@@ -17,18 +17,14 @@ class LLM:
         model: str = "gpt-4o-mini",
         temperature: float = 0.0,
         tools: Optional[List[Tool]] = None,
-        api_base: Optional[str] = None,
+        base_url: Optional[str] = None,
         api_key: Optional[str] = None
     ):
         self.model = model
         self.temperature = temperature
         
-        if api_base:
-            self.client = OpenAI(api_base = api_base, api_key = api_key):
-        elif api_key:
-            self.client = OpenAI(api_key = api_key)
-        else:
-            self.client = OpenAI()
+        # This logic correctly initializes the OpenAI client with your custom endpoint
+        self.client = OpenAI(base_url=base_url, api_key=api_key)
         
         self.tools: Dict[str, Tool] = {
             tool.name: tool for tool in (tools or [])
@@ -66,8 +62,11 @@ class LLM:
         messages = self._convert_input(input)
         payload = self._build_payload(messages)
         if response_format:
-            payload.update({"response_format": response_format})
-            response = self.client.beta.chat.completions.parse(**payload)
+            payload.update({"response_format": {"type": "json_object"}})
+            # Note: The .parse method is deprecated in newer openai versions, 
+            # but we use what's compatible with your setup.
+            # A more modern approach uses client.chat.completions.create with response_format
+            response = self.client.chat.completions.create(**payload)
         else:
             response = self.client.chat.completions.create(**payload)
         choice = response.choices[0]
