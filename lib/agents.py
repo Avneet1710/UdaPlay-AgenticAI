@@ -20,7 +20,9 @@ class Agent:
                  model_name: str,
                  instructions: str, 
                  tools: List[Tool] = None,
-                 temperature: float = 0.7):
+                 temperature: float = 0.7,
+                 api_base: Optional[str] = None,
+                 api_key: Optional[str] = None): # <<< CHANGE: Added api_base and api_key
         """
         Initialize an Agent
         
@@ -29,11 +31,15 @@ class Agent:
             instructions: System instructions for the agent
             tools: Optional list of tools available to the agent
             temperature: Temperature parameter for LLM (default: 0.7)
+            api_base: The base URL for the API endpoint.
+            api_key: The API key for authentication.
         """
         self.instructions = instructions
         self.tools = tools if tools else []
         self.model_name = model_name
         self.temperature = temperature
+        self.api_base = api_base # <<< CHANGE: Store api_base
+        self.api_key = api_key   # <<< CHANGE: Store api_key
         
         # Initialize memory and state machine
         self.memory = ShortTermMemory()
@@ -58,10 +64,13 @@ class Agent:
     def _llm_step(self, state: AgentState) -> AgentState:
         """Step logic: Process the current state through the LLM"""
         # Initialize LLM
+        # <<< CHANGE: Pass api_base and api_key to the LLM constructor
         llm = LLM(
             model=self.model_name,
             temperature=self.temperature,
-            tools=self.tools
+            tools=self.tools,
+            api_base=self.api_base,
+            api_key=self.api_key
         )
 
         response = llm.invoke(state["messages"])
