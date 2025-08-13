@@ -17,11 +17,19 @@ class LLM:
         model: str = "gpt-4o-mini",
         temperature: float = 0.0,
         tools: Optional[List[Tool]] = None,
+        api_base: Optional[str] = None,
         api_key: Optional[str] = None
     ):
         self.model = model
         self.temperature = temperature
-        self.client = OpenAI(api_key=api_key) if api_key else OpenAI()
+        
+        if api_base:
+            self.client = OpenAI(api_base = api_base, api_key = api_key):
+        elif api_key:
+            self.client = OpenAI(api_key = api_key)
+        else:
+            self.client = OpenAI()
+        
         self.tools: Dict[str, Tool] = {
             tool.name: tool for tool in (tools or [])
         }
