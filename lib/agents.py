@@ -47,7 +47,6 @@ class Agent:
         }
 
     def _llm_step(self, state: AgentState) -> AgentState:
-        # Correctly initializes the LLM with all necessary parameters
         llm = LLM(
             model=self.model_name,
             temperature=self.temperature,
@@ -86,9 +85,10 @@ class Agent:
             tool = next((t for t in self.tools if t.name == function_name), None)
             
             if tool:
+                # The result needs to be JSON serializable
                 result = tool(**function_args)
                 tool_message = ToolMessage(
-                    content=json.dumps(result, default=lambda o: o.__dict__), # Handle complex objects
+                    content=json.dumps(result, default=lambda o: o.__dict__),
                     tool_call_id=tool_call_id, 
                     name=function_name, 
                 )
@@ -102,7 +102,6 @@ class Agent:
 
     def _create_state_machine(self) -> StateMachine[AgentState]:
         machine = StateMachine[AgentState](AgentState)
-        
         entry = EntryPoint[AgentState]()
         message_prep = Step[AgentState]("message_prep", self._prepare_messages_step)
         llm_processor = Step[AgentState]("llm_processor", self._llm_step)
@@ -110,7 +109,6 @@ class Agent:
         termination = Termination[AgentState]()
         
         machine.add_steps([entry, message_prep, llm_processor, tool_executor, termination])
-        
         machine.connect(entry, message_prep)
         machine.connect(message_prep, llm_processor)
         
@@ -121,24 +119,24 @@ class Agent:
         
         machine.connect(llm_processor, [tool_executor, termination], check_tool_calls)
         machine.connect(tool_executor, llm_processor)
-        
         return machine
 
     def invoke(self, query: str, session_id: Optional[str] = None) -> Run:
+        """
+        Run the agent on a query. This method now ensures a clean state for each invocation.
+        """
         session_id = session_id or "default"
-        self.memory.create_session(session_id)
-        
-        previous_messages = []
-        last_run: Run = self.memory.get_last_object(session_id)
-        if last_run:
-            last_state = last_run.get_final_state()
-            if last_state:
-                previous_messages = last_state.get("messages", [])
 
+        # *** THIS IS THE CRITICAL FIX ***
+        # We explicitly reset the memory for the session at the start of an invocation.
+        # This prevents contamination from previous, unrelated queries in the same notebook run.
+        self.memory.reset(session_id)
+
+        # The initial state is now always clean, containing only the instructions.
         initial_state: AgentState = {
             "user_query": query,
             "instructions": self.instructions,
-            "messages": previous_messages,
+            "messages": [], # Start with an empty message list
             "current_tool_calls": None,
             "session_id": session_id,
             "total_tokens": 0
@@ -146,5 +144,4 @@ class Agent:
 
         run_object = self.workflow.run(initial_state)
         self.memory.add(run_object, session_id)
-        
         return run_object
